@@ -147,6 +147,10 @@ LOGGING = {
     },
 }
 
+# Geolocation API settings
+GEOLOCATION_API_KEY = None
+GEOLOCATION_API_URL = 'http://ip-api.com/json/'  # Free service
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',

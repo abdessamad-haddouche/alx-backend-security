@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.http import HttpResponseForbidden
 from django.core.cache import cache
 from .models import RequestLog, BlockedIP
+from .geolocation import geolocation_service
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 class IPLoggingMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """
-        Log the IP address, timestamp, and path of every incoming request.
+        Log the IP address, timestamp, path, and geolocation of every incoming request.
         Block requests from blacklisted IPs.
         """
         try:
@@ -25,12 +26,21 @@ class IPLoggingMiddleware(MiddlewareMixin):
             # Get the request path
             path = request.get_full_path()
             
-            # Log the request
+            # Get geolocation data (cached for 24 hours)
+            location_data = geolocation_service.get_location(ip_address)
+            
+            # Log the request with geolocation
             RequestLog.objects.create(
                 ip_address=ip_address,
                 timestamp=timezone.now(),
-                path=path
+                path=path,
+                country=location_data.get('country'),
+                city=location_data.get('city')
             )
+            
+            # Log geolocation info for debugging
+            if location_data.get('country') or location_data.get('city'):
+                logger.info(f"Request from {ip_address} ({location_data.get('city', 'Unknown')}, {location_data.get('country', 'Unknown')})")
             
         except Exception as e:
             # Log the error but don't break the request

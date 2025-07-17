@@ -144,12 +144,26 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django_ratelimit': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
     },
 }
 
 # Geolocation API settings
 GEOLOCATION_API_KEY = None
 GEOLOCATION_API_URL = 'http://ip-api.com/json/'  # Free service
+
+# Rate limiting settings
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
+
+# Custom rate limit configuration
+RATE_LIMIT_AUTHENTICATED = '10/m'  # 10 requests per minute for authenticated users
+RATE_LIMIT_ANONYMOUS = '5/m'       # 5 requests per minute for anonymous users
+
 
 CACHES = {
     'default': {

@@ -124,6 +124,65 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Geolocation API settings
+GEOLOCATION_API_KEY = None
+GEOLOCATION_API_URL = 'http://ip-api.com/json/'  # Free service
+
+# Rate limiting settings
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
+
+# Custom rate limit configuration
+RATE_LIMIT_AUTHENTICATED = '10/m'  # 10 requests per minute for authenticated users
+RATE_LIMIT_ANONYMOUS = '5/m'       # 5 requests per minute for anonymous users
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# Celery Beat Schedule for periodic tasks
+CELERY_BEAT_SCHEDULE = {
+    'detect-anomalies': {
+        'task': 'ip_tracking.tasks.detect_anomalies',
+        'schedule': 3600.0,  # Run every hour (3600 seconds)
+    },
+    'cleanup-old-logs': {
+        'task': 'ip_tracking.tasks.cleanup_old_logs',
+        'schedule': 86400.0,  # Run daily (86400 seconds)
+    },
+}
+
+# Anomaly detection settings
+ANOMALY_DETECTION = {
+    'REQUEST_THRESHOLD_PER_HOUR': 100,
+    'SENSITIVE_PATHS': [
+        '/admin',
+        '/login',
+        '/api/admin',
+        '/wp-admin',
+        '/.env',
+        '/config',
+        '/phpmyadmin',
+        '/wp-login.php',
+    ],
+    'RAPID_REQUEST_THRESHOLD': 20,  # requests per minute
+    'FAILED_LOGIN_THRESHOLD': 10,   # failed attempts per hour
+    'LOG_RETENTION_DAYS': 30,       # Keep logs for 30 days
+}
+
+# Update logging to include Celery
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -144,30 +203,10 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'django_ratelimit': {
+        'celery': {
             'handlers': ['file', 'console'],
-            'level': 'WARNING',
+            'level': 'INFO',
             'propagate': True,
         },
     },
-}
-
-# Geolocation API settings
-GEOLOCATION_API_KEY = None
-GEOLOCATION_API_URL = 'http://ip-api.com/json/'  # Free service
-
-# Rate limiting settings
-RATELIMIT_ENABLE = True
-RATELIMIT_USE_CACHE = 'default'
-
-# Custom rate limit configuration
-RATE_LIMIT_AUTHENTICATED = '10/m'  # 10 requests per minute for authenticated users
-RATE_LIMIT_ANONYMOUS = '5/m'       # 5 requests per minute for anonymous users
-
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
 }
